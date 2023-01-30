@@ -1,4 +1,4 @@
-import { GraphQLObjectType, GraphQLNonNull, GraphQLID, GraphQLString, GraphQLList, GraphQLInt } from 'graphql';
+import { GraphQLObjectType, GraphQLNonNull, GraphQLID, GraphQLString, GraphQLList, GraphQLInt, GraphQLInputObjectType } from 'graphql';
 
 export const ProfileType = new GraphQLObjectType({
   name: 'Profile',
@@ -6,8 +6,8 @@ export const ProfileType = new GraphQLObjectType({
     id: { type: new GraphQLNonNull(GraphQLID) },
     avatar: { type: new GraphQLNonNull(GraphQLString) },
     sex: { type: new GraphQLNonNull(GraphQLString) },
-    birthday: { type: new GraphQLNonNull(GraphQLString) },
-    country: { type: new GraphQLNonNull(GraphQLInt) },
+    birthday: { type: new GraphQLNonNull(GraphQLInt) },
+    country: { type: new GraphQLNonNull(GraphQLString) },
     street: { type: new GraphQLNonNull(GraphQLString) },
     city: { type: new GraphQLNonNull(GraphQLString) },
     memberTypeId: { type: new GraphQLNonNull(GraphQLString) },
@@ -77,4 +77,36 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
       }
     },
   })
+});
+
+export const CreateUserType = new GraphQLInputObjectType({
+  name: 'CreateUser',
+  fields: {
+    firstName: { type: new GraphQLNonNull(GraphQLString) },
+    lastName: { type: new GraphQLNonNull(GraphQLString) },
+    email: { type: new GraphQLNonNull(GraphQLString) }
+  }
+});
+
+export const CreateProfileType = new GraphQLInputObjectType({
+  name: 'CreateProfile',
+  fields: {
+    avatar: { type: new GraphQLNonNull(GraphQLString) },
+    sex: { type: new GraphQLNonNull(GraphQLString) },
+    birthday: { type: new GraphQLNonNull(GraphQLInt) },
+    country: { type: new GraphQLNonNull(GraphQLString) },
+    street: { type: new GraphQLNonNull(GraphQLString) },
+    city: { type: new GraphQLNonNull(GraphQLString) },
+    memberTypeId: { type: new GraphQLNonNull(GraphQLString) },
+    userId: { type: new GraphQLNonNull(GraphQLString) }
+  }
+});
+
+export const CreatePostType = new GraphQLInputObjectType({
+  name: 'CreatePost',
+  fields: {
+    title: { type: new GraphQLNonNull(GraphQLString) },
+    content: { type: new GraphQLNonNull(GraphQLString) },
+    userId: { type: new GraphQLNonNull(GraphQLString) }
+  }
 });

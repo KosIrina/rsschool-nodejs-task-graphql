@@ -2,7 +2,7 @@ import { FastifyPluginAsyncJsonSchemaToTs } from '@fastify/type-provider-json-sc
 import { graphql } from 'graphql';
 import { graphqlBodySchema } from './schema';
 import { GraphQLObjectType, GraphQLSchema, GraphQLList, GraphQLNonNull, GraphQLID } from 'graphql';
-import { UserType, ProfileType, PostType, MemberTypeType } from './types';
+import { UserType, ProfileType, PostType, MemberTypeType, CreateUserType, CreateProfileType, CreatePostType } from './types';
 
 const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
   fastify
@@ -95,11 +95,66 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
               },
             },
             async resolve(_, args) {
-              const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: args.id });
-              if (!memberType) {
+              const currentMemberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: args.id });
+              if (!currentMemberType) {
                 throw fastify.httpErrors.notFound(`Such member type doesn't exist`);
               }
-              return memberType;
+              return currentMemberType;
+            }
+          },
+        }
+      });
+
+      const AppMutationRootType = new GraphQLObjectType({
+        name: 'Mutations',
+        fields: {
+          createUser: {
+            type: UserType,
+            args: {
+              body: {
+                type: new GraphQLNonNull(CreateUserType),
+              },
+            },
+            async resolve(_, args) {
+              return await fastify.db.users.create(args.body);
+            }
+          },
+          createProfile: {
+            type: ProfileType,
+            args: {
+              body: {
+                type: new GraphQLNonNull(CreateProfileType),
+              },
+            },
+            async resolve(_, args) {
+              const user = await fastify.db.users.findOne({ key: 'id', equals: args.body.userId });
+              if (!user) {
+                throw fastify.httpErrors.badRequest('No such user exists');
+              }
+              const profile = await fastify.db.profiles.findOne({ key: 'userId', equals: args.body.userId });
+              if (profile) {
+                throw fastify.httpErrors.badRequest('Profile already exists');
+              }
+              const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: args.body.memberTypeId });
+              if (!memberType) {
+                throw fastify.httpErrors.badRequest('Incorrect member type');
+              }
+              return await fastify.db.profiles.create(args.body);
+            }
+          },
+          createPost: {
+            type: PostType,
+            args: {
+              body: {
+                type: new GraphQLNonNull(CreatePostType),
+              },
+            },
+            async resolve(_, args) {
+              const user = await fastify.db.users.findOne({ key: 'id', equals: args.body.userId });
+              if (!user) {
+                throw fastify.httpErrors.badRequest('No such user exists');
+              }
+              return await fastify.db.posts.create(args.body);
             }
           },
         }
@@ -107,7 +162,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 
       const AppSchema = new GraphQLSchema({
         query: AppQueryRootType,
-        //mutation: AppMutationRootType
+        mutation: AppMutationRootType
       });
 
       return await graphql({
