@@ -110,3 +110,61 @@ export const CreatePostType = new GraphQLInputObjectType({
     userId: { type: new GraphQLNonNull(GraphQLString) }
   }
 });
+
+export const UpdateUserType = new GraphQLInputObjectType({
+  name: 'UpdateUser',
+  fields: {
+    id: { type: new GraphQLNonNull(GraphQLID) },
+    firstName: { type: GraphQLString },
+    lastName: { type: GraphQLString },
+    email: { type: GraphQLString }
+  }
+});
+
+export const UpdateProfileType = new GraphQLInputObjectType({
+  name: 'UpdateProfile',
+  fields: {
+    id: { type: new GraphQLNonNull(GraphQLID) },
+    avatar: { type: GraphQLString },
+    sex: { type: GraphQLString },
+    birthday: { type: GraphQLInt },
+    country: { type: GraphQLString },
+    street: { type: GraphQLString },
+    city: { type: GraphQLString },
+    memberTypeId: { type: GraphQLString },
+  }
+});
+
+export const UpdatePostType = new GraphQLInputObjectType({
+  name: 'UpdatePost',
+  fields: {
+    id: { type: new GraphQLNonNull(GraphQLID) },
+    title: { type: GraphQLString },
+    content: { type: GraphQLString }
+  }
+});
+
+export const UpdateMemberTypeType = new GraphQLInputObjectType({
+  name: 'UpdateMemberType',
+  fields: {
+    id: { type: new GraphQLNonNull(GraphQLID) },
+    discount: { type: GraphQLInt },
+    monthPostsLimit: { type: GraphQLInt }
+  }
+});
+
+export const SubscribeToType = new GraphQLInputObjectType({
+  name: 'SubscribeTo',
+  fields: {
+    currentUserId: { type: new GraphQLNonNull(GraphQLID) },
+    userToSubscribeToId: { type: new GraphQLNonNull(GraphQLID) }
+  }
+});
+
+export const UnsubscribeFromType = new GraphQLInputObjectType({
+  name: 'UnsubscribeFrom',
+  fields: {
+    currentUserId: { type: new GraphQLNonNull(GraphQLID) },
+    userToUnsubscribeFromId: { type: new GraphQLNonNull(GraphQLID) }
+  }
+});

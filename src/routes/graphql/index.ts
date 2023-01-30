@@ -2,7 +2,7 @@ import { FastifyPluginAsyncJsonSchemaToTs } from '@fastify/type-provider-json-sc
 import { graphql } from 'graphql';
 import { graphqlBodySchema } from './schema';
 import { GraphQLObjectType, GraphQLSchema, GraphQLList, GraphQLNonNull, GraphQLID } from 'graphql';
-import { UserType, ProfileType, PostType, MemberTypeType, CreateUserType, CreateProfileType, CreatePostType } from './types';
+import { UserType, ProfileType, PostType, MemberTypeType, CreateUserType, CreateProfileType, CreatePostType, UpdateUserType, UpdateProfileType, UpdatePostType, UpdateMemberTypeType, SubscribeToType, UnsubscribeFromType } from './types';
 
 const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
   fastify
@@ -157,6 +157,118 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
               return await fastify.db.posts.create(args.body);
             }
           },
+          updateUser: {
+            type: UserType,
+            args: {
+              body: {
+                type: new GraphQLNonNull(UpdateUserType),
+              },
+            },
+            async resolve(_, args) {
+              const { id, ...newInfo } = args.body;
+              const user = await fastify.db.users.findOne({ key: 'id', equals: id });
+              if (!user) {
+                throw fastify.httpErrors.badRequest('No such user exists');
+              }
+              return await fastify.db.users.change(id, newInfo);
+            }
+          },
+          updateProfile: {
+            type: ProfileType,
+            args: {
+              body: {
+                type: new GraphQLNonNull(UpdateProfileType),
+              },
+            },
+            async resolve(_, args) {
+              const { id, ...newInfo } = args.body;
+              const currentProfile = await fastify.db.profiles.findOne({ key: 'id', equals: id });
+              if (!currentProfile) {
+                throw fastify.httpErrors.badRequest('No such profile exists');
+              }
+              return await fastify.db.profiles.change(id, newInfo);
+            }
+          },
+          updatePost: {
+            type: PostType,
+            args: {
+              body: {
+                type: new GraphQLNonNull(UpdatePostType),
+              },
+            },
+            async resolve(_, args) {
+              const { id, ...newInfo } = args.body;
+              const currentPost = await fastify.db.posts.findOne({ key: 'id', equals: id });
+              if (!currentPost) {
+                throw fastify.httpErrors.badRequest('No such post exists');
+              }
+              return await fastify.db.posts.change(id, newInfo);
+            }
+          },
+          updateMemberType: {
+            type: MemberTypeType,
+            args: {
+              body: {
+                type: new GraphQLNonNull(UpdateMemberTypeType),
+              },
+            },
+            async resolve(_, args) {
+              const { id, ...newInfo } = args.body;
+              const currentMemberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: id });
+              if (!currentMemberType) {
+                throw fastify.httpErrors.badRequest('No such member type exists');
+              }
+              return await fastify.db.memberTypes.change(id, newInfo);
+            }
+          },
+          subscribeTo: {
+            type: UserType,
+            args: {
+              body: {
+                type: new GraphQLNonNull(SubscribeToType),
+              }
+            },
+            async resolve(_, args) {
+              const { currentUserId, userToSubscribeToId } = args.body;
+              const userToSubscribeTo = await fastify.db.users.findOne({ key: 'id', equals: userToSubscribeToId });
+              if (!userToSubscribeTo) {
+                throw fastify.httpErrors.notFound(`User to subscribe doesn't exist`);
+              }
+              const currentUser = await fastify.db.users.findOne({ key: 'id', equals: currentUserId });
+              if (!currentUser) {
+                throw fastify.httpErrors.badRequest('No such user exists');
+              }
+              if (userToSubscribeTo.subscribedToUserIds.includes(currentUserId)) {
+                return userToSubscribeTo;
+              }
+              return await fastify.db.users.change(userToSubscribeToId, { subscribedToUserIds: [...userToSubscribeTo.subscribedToUserIds, currentUserId] });
+            }
+          },
+          unsubscribeFrom: {
+            type: UserType,
+            args: {
+              body: {
+                type: new GraphQLNonNull(UnsubscribeFromType),
+              }
+            },
+            async resolve(_, args) {
+              const { currentUserId, userToUnsubscribeFromId } = args.body;
+              const userToUnsubscribeFrom = await fastify.db.users.findOne({ key: 'id', equals: userToUnsubscribeFromId });
+              if (!userToUnsubscribeFrom) {
+                throw fastify.httpErrors.notFound(`User to unsubscribe doesn't exist`);
+              }
+              const currentUser = await fastify.db.users.findOne({ key: 'id', equals: currentUserId });
+              if (!currentUser) {
+                throw fastify.httpErrors.badRequest('No such user exists');
+              }
+              if (!userToUnsubscribeFrom.subscribedToUserIds.includes(currentUserId)) {
+                throw fastify.httpErrors.badRequest(`User is not subscribed`);
+              }
+              const following = userToUnsubscribeFrom.subscribedToUserIds;
+              following.splice(following.indexOf(currentUserId), 1);
+              return await fastify.db.users.change(userToUnsubscribeFromId, { subscribedToUserIds: following });
+            }
+          }
         }
       });
 
